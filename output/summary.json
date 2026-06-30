@@ -1,0 +1,16 @@
+{
+  "reconciliation_name": "Loan-to-Bank Reconciliation",
+  "timestamp": "2026-06-30T20:21:49.774546",
+  "input_records": {
+    "left_total": 73,
+    "right_total": 74
+  },
+  "output_records": {
+    "exact_matches": 71,
+    "mismatches": 0,
+    "breaks": 6,
+    "duplicates": 2
+  },
+  "accounts_analyzed": 23,
+  "accounts_reconciled": 20
+}

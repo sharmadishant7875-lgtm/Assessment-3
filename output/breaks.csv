@@ -1,0 +1,7 @@
+transaction_id,account_id,transaction_type,amount_left,transaction_date,value_date,end_to_end_id,narrative_left,bank_transaction_id,account_number,counterparty_account,debit_credit,amount_right,transaction_time,narrative_right,_merge,break_type
+LTX5041,L1012,REPAYMENT,1700.34,19/05/2026,19/05/2026,E2E00005041,Monthly repayment L1012,,,,,,,,left_only,LEFT_ONLY
+LTX5049,L1016,REPAYMENT,2035.08,25/05/2026,25/05/2026,E2E00005049,Monthly repayment L1016,,,,,,,,left_only,LEFT_ONLY
+LTX5059,L1019,REPAYMENT,1731.48,06/03/2026,06/03/2026,E2E00005059,Monthly repayment L1019,,,,,,,,left_only,LEFT_ONLY
+,,,,,,E2E00099000,,BK80071,20051234.0,82232344.0,CRDT,2982.14,2026-05-18 10:00:00,Manual receipt - unallocated,right_only,RIGHT_ONLY
+,,,,,,E2E00099001,,BK80072,20051234.0,89520597.0,CRDT,2055.16,2026-05-01 10:00:00,Manual receipt - unallocated,right_only,RIGHT_ONLY
+,,,,,,E2E00099002,,BK80073,20051234.0,42949803.0,CRDT,1670.22,2026-04-04 10:00:00,Manual receipt - unallocated,right_only,RIGHT_ONLY

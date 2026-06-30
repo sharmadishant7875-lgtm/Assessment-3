@@ -1,0 +1,3 @@
+transaction_id,account_id,transaction_type,amount,transaction_date,value_date,end_to_end_id,narrative,source,bank_transaction_id,account_number,counterparty_account,debit_credit,transaction_time
+,,,802.55,,,E2E00005002,Mortgage payment ref L1001,RIGHT,BK80002,20051234.0,13704481.0,CRDT,2026-03-25 16:21:00
+,,,802.55,,,E2E00005002,Mortgage payment ref L1001,RIGHT,BK80074,20051234.0,13704481.0,CRDT,2026-03-25 16:23:00

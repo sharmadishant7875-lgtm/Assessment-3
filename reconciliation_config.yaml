@@ -1,0 +1,121 @@
+# Reconciliation Engine Configuration
+# Purpose: Define loan-to-bank reconciliation as config, not code
+# This allows new reconciliations to be added by config change only
+
+reconciliation:
+  name: "Loan-to-Bank Reconciliation"
+  description: "Match loan system transactions to bank payments system"
+  version: "1.0"
+
+sources:
+  left:
+    name: "loan_transactions"
+    type: "csv"  # or 'database'
+    path: "loan_transactions.csv"
+
+  right:
+    name: "bank_transactions"
+    type: "csv"
+    path: "bank_transactions.csv"
+
+  # Optional reference table for account-level metadata
+  reference:
+    name: "loan_accounts"
+    type: "csv"
+    path: "loan_accounts.csv"
+
+join_logic:
+  # Primary join key: end_to_end_id
+  # This is the universal identifier linking transactions across systems
+  keys:
+    - name: "end_to_end_id"
+      left_field: "end_to_end_id"
+      right_field: "end_to_end_id"
+      required: false  # Some transactions may not have end_to_end_id (e.g., interest accruals)
+
+  # Optional secondary join keys (for future use)
+  # Example: account_id + transaction_date (if end_to_end_id not reliable)
+  secondary_keys: []
+    # - name: "account_date"
+    #   left_fields: ["account_id", "transaction_date"]
+    #   right_fields: ["account_id", "transaction_date"]
+
+amount_matching:
+  # Specify which fields contain transaction amounts
+  left_amount_field: "amount"
+  right_amount_field: "amount"
+
+  # Tolerance for amount comparison
+  # Rationale: Handles rounding errors, FX conversion precision, fee deductions
+  # Set to 0 for exact match, or specify a small tolerance (e.g., 0.99 for pence rounding)
+  tolerance: 1.0  # £1 tolerance (covers observed mismatches of £0.50-£0.75)
+
+  # How to handle NULL/missing amounts
+  null_handling: "exclude"  # Options: 'exclude', 'zero', 'skip'
+                            # exclude = skip NULL transactions from matching
+                            # zero = treat NULL as 0
+                            # skip = error if NULL found
+
+transaction_classification:
+  # Optional: filter transactions before reconciliation
+  # Rationale: Interest accruals are accounting entries, not cash movements
+  left_excludes:
+    # Exclude INTEREST_ACCRUAL from matching (these have no bank counterpart by design)
+    - field: "transaction_type"
+      values: ["INTEREST_ACCRUAL"]
+      reason: "Interest accruals are journal entries; no cash movement in bank system"
+
+  right_excludes:
+    # No exclusions for bank (all are cash movements)
+    []
+
+output:
+  # Specify which outputs to produce
+  produce:
+    - "matched"          # Transactions that match on both sides
+    - "mismatches"       # Matched but amount differs
+    - "breaks"           # One-sided (exist in one system only)
+    - "duplicates"       # Same key appearing multiple times
+    - "account_summary"  # Per-account reconciliation status
+
+  # Optional: account-level aggregation
+  account_reference_field: "account_id"
+  account_join_to_reference: true  # Join to loan_accounts for metadata
+
+reconciliation_summary:
+  # Define per-account reconciliation status logic
+  # Based on presence/absence of unmatched transactions
+  status_rules:
+    - condition: "unmatched_left == 0 AND unmatched_right == 0"
+      status: "RECONCILED"
+    - condition: "unmatched_left > 0 AND unmatched_right == 0"
+      status: "LOAN_BREAKS"
+    - condition: "unmatched_left == 0 AND unmatched_right > 0"
+      status: "BANK_BREAKS"
+    - condition: "unmatched_left > 0 AND unmatched_right > 0"
+      status: "BOTH_SIDES_BREAKS"
+
+validation:
+  # Validation rules to run after reconciliation
+  rules:
+    - name: "row_count_change"
+      check: "matched_count + break_count >= 0"
+      action: "warn"
+      description: "Ensure no data loss in reconciliation output"
+
+    - name: "amount_conservation"
+      check: "sum(matched_left) + sum(break_left) == sum(input_left)"
+      action: "warn"
+      description: "All input amounts accounted for in output"
+
+    - name: "break_detection_threshold"
+      check: "break_count < 100"
+      action: "warn"
+      description: "Alert if breaks exceed expected threshold"
+
+logging:
+  # Audit and debugging
+  verbosity: "info"  # Options: 'debug', 'info', 'warn', 'error'
+  log_unmatched: true  # Log details of unmatched transactions
+  log_exclusions: true  # Log details of excluded transactions
+  save_intermediate: false  # Save intermediate DataFrames for debugging
